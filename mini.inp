@@ -1,0 +1,331 @@
+#define shield
+#define part_track
+!#define traj
+#define trg_len 84.1
+#if trg_len
+!@what.1=trg_len-0.1
+#define det_len 84
+!@what.1=(-trg_len/2)-45
+#define trg_pos -87.05
+!@what.1=(-det_len/2)-45
+#define det_pos -87
+#endif
+#define mat TUNGSTEN
+#define slug_gap 1.5
+!@what.1=(det_len - (slug_gap*6))/7
+#define slug_len 10.71428571428571
+GLOBAL                                                                DEPRBODY
+TITLE
+solenoid_design
+*Set the defaults for precision simulations
+DEFAULTS                                                              PRECISIO
+*Define the beam characteristics
+!@scale=3
+!@color=#ff00ff
+BEAM            -8.0                                                  PROTON
+*Define the beam position
+BEAMPOS                             -199
+GEOBEGIN                                                              COMBNAME
+    0    0          
+SPH blkhole    0 0 0 2000
+SPH void       0.0 0 0 400
+ZEC sol_in     0 0 75.0 75
+ZEC wall_out   0 0 70 70.0
+ZEC wall_in    0 0 30.0 30.0
+TRC cone_ent   0 0 -210 0 0 90.0 75.0 30.0
+TRC cone_mid   0 0 0 0 0 90.0 75.0 30.0
+ZEC wall_mid   0 0 55.0 55.0
+XYP sol_R      198.41
+XYP sol_L      -198.41
+ZEC sol_out    0 0 94.78 94.78
+ZEC sol_out1   0 0 85.5 85.5
+ZEC sol_out2   0 0 91.67 91.67
+XYP sol_mid    0.1
+XYP split1     -26.7
+XYP split2     -22.68
+XYP split4     111.08
+XYP split5     123.1
+RCC trg_det    0 0.0 $det_pos 0.0 0.0 $det_len 2.37
+RCC trg_out    0 0 $trg_pos 0.0 0.0 $trg_len 2.27
+!@what.3=trg_pos-0.1
+!@what.6=trg_len+0.2
+RCC trg_in     0.0 0 -87.14999999999999 0.0 0.0 84.3 1.37
+!@what.3=trg_pos-0.15
+!@what.6=trg_len+0.3
+RCC slug       0 0 -87.2 0.0 0.0 84.39999999999999 0.51
+$start_transform trns_fin1
+!@what.3=trg_pos-0.2
+!@what.12=trg_len+0.4
+BOX fin1       -0.05 0.5 -87.25 0.0 -1.0 0.0 0.1 0.0 0.0 0.0 0.0 84.5
+$end_transform
+$start_transform rot_fin2
+!@what.3=trg_pos-0.2
+!@what.12=trg_len+0.4
+BOX fin2       -0.05 0.5 -87.25 0.0 -1.0 0.0 0.1 0.0 0.0 0.0 0.0 84.5
+$end_transform
+$start_transform rot_fin3
+!@what.3=trg_pos-0.2
+!@what.12=trg_len+0.4
+BOX fin3       -0.05 0.5 -87.25 0.0 -1.0 0.0 0.1 0.0 0.0 0.0 0.0 84.5
+$end_transform
+!@what.1=-45 - (det_len/2) + slug_len
+XYP trg_sp1    -76.28571428571429
+!@what.1=-45 - (det_len/2) + slug_len + slug_gap
+XYP trg_sp2    -74.78571428571429
+!@what.1=-45 - (det_len/2) + (slug_len * 2) + slug_gap
+XYP trg_sp3    -64.07142857142857
+!@what.1=-45 - (det_len/2) + (slug_len * 2) + (slug_gap * 2)
+XYP trg_sp4    -62.57142857142857
+!@what.1=-45 - (det_len/2) + (slug_len * 3) + (slug_gap * 2)
+XYP trg_sp5    -51.85714285714286
+!@what.1=-45 - (det_len/2) + (slug_len * 3) + (slug_gap * 3)
+XYP trg_sp6    -50.35714285714286
+!@what.1=-45 - (det_len/2) + (slug_len * 4) + (slug_gap * 3)
+XYP trg_sp7    -39.642857142857146
+!@what.1=-45 - (det_len/2) + (slug_len * 4) + (slug_gap * 4)
+XYP trg_sp8    -38.142857142857146
+!@what.1=-45 - (det_len/2) + (slug_len * 5) + (slug_gap * 4)
+XYP trg_sp9    -27.42857142857143
+!@what.1=-45 - (det_len/2) + (slug_len * 5) + (slug_gap * 5)
+XYP trg_sp10   -25.92857142857143
+!@what.1=-45 - (det_len/2) + (slug_len * 6) + (slug_gap * 5)
+XYP trg_sp11   -15.214285714285722
+!@what.1=-45 - (det_len/2) + (slug_len * 6) + (slug_gap * 6)
+XYP trg_sp12   -13.714285714285722
+END
+BLCKHOLE     5 +blkhole -void
+VOID         5 +void +sol_L -sol_out -sol_out2
+               | +void +sol_L +sol_out
+               | +void +sol_out -sol_R
+               | +void -sol_R -sol_out
+               | +void +split1 -sol_L -sol_out
+               | +void +split2 -sol_out1 -split1
+               | +void +split4 -sol_out2 -split2
+               | +void +split5 -sol_out1 -split4
+               | +void +sol_R -sol_out2 -split5
+BEAMLINE     5 +wall_in +cone_ent -sol_L
+               | +cone_ent -wall_in -sol_L
+               | +wall_in +sol_R -cone_ent -sol_L -trg_out -trg_det
+SHLD_BR      5 +wall_out +wall_mid +sol_R -wall_in -cone_ent -sol_L
+               | +wall_out +sol_mid -wall_in -cone_ent -wall_mid -sol_L
+               | +wall_out +cone_mid -wall_in -wall_mid -sol_mid
+SHLD_WA      5 +wall_out +sol_R -cone_mid -wall_mid -sol_mid
+               | +sol_in +sol_R -wall_out -cone_ent -sol_L
+STL_WALL     5 +sol_R +sol_out1 -sol_in -sol_L
+MAG_L        5 +sol_out +split1 -sol_L -sol_out1
+MAG_MID      5 +sol_out2 +split4 -sol_out1 -split2
+MAG_R        5 +sol_R +sol_out2 -sol_out1 -split5
+TARGET       5 +trg_out +trg_det -trg_in
+               | +trg_det +trg_out +trg_in +slug +trg_sp1
+               | +trg_det +trg_out +trg_in +slug +trg_sp3 -trg_sp2
+               | +trg_det +trg_out +trg_in +slug +trg_sp5 -trg_sp4
+               | +trg_det +trg_out +trg_in +slug +trg_sp7 -trg_sp6
+               | +trg_det +trg_out +trg_in +slug +trg_sp9 -trg_sp8
+               | +trg_det +trg_out +trg_in +slug +trg_sp11 -trg_sp10
+               | +trg_det +trg_out +trg_in +slug -trg_sp12
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp1 -slug
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp1 -slug
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp1 -slug
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp3 -slug -trg_sp2
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp3 -slug -trg_sp2
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp3 -slug -trg_sp2
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp5 -slug -trg_sp4
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp5 -slug -trg_sp4
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp5 -slug -trg_sp4
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp7 -slug -trg_sp6
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp7 -slug -trg_sp6
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp7 -slug -trg_sp6
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp9 -slug -trg_sp8
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp9 -slug -trg_sp8
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp9 -slug -trg_sp8
+               | +trg_det +trg_out +trg_in +fin1 +trg_sp11 -slug -trg_sp10
+               | +trg_det +trg_out +trg_in +fin3 +trg_sp11 -slug -trg_sp10
+               | +trg_det +trg_out +trg_in +fin2 +trg_sp11 -slug -trg_sp10
+               | +trg_det +trg_out +trg_in +fin1 -slug -trg_sp12
+               | +trg_det +trg_out +trg_in +fin3 -slug -trg_sp12
+               | +trg_det +trg_out +trg_in +fin2 -slug -trg_sp12
+TRG_AIR      5 +trg_det +trg_out +trg_in +trg_sp1 -slug -fin1 -fin2 -fin3
+               | +trg_det +trg_out +trg_in +trg_sp3 -slug -fin1 -fin2 -fin3 -trg_sp2
+               | +trg_det +trg_out +trg_in +trg_sp5 -slug -fin1 -fin2 -fin3 -trg_sp4
+               | +trg_det +trg_out +trg_in +trg_sp7 -slug -fin1 -fin2 -fin3 -trg_sp6
+               | +trg_det +trg_out +trg_in +trg_sp9 -slug -fin1 -fin2 -fin3 -trg_sp8
+               | +trg_det +trg_out +trg_in +trg_sp11 -slug -fin1 -fin2 -fin3 -trg_sp10
+               | +trg_det +trg_out +trg_in -slug -fin1 -fin2 -fin3 -trg_sp12
+               | +trg_det +trg_out +trg_in +trg_sp2 -trg_sp1
+               | +trg_det +trg_out +trg_in +trg_sp4 -trg_sp3
+               | +trg_det +trg_out +trg_in +trg_sp6 -trg_sp5
+               | +trg_det +trg_out +trg_in +trg_sp8 -trg_sp7
+               | +trg_det +trg_out +trg_in +trg_sp10 -trg_sp9
+               | +trg_det +trg_out +trg_in +trg_sp12 -trg_sp11
+TRG_ARO      5 +trg_det -trg_out
+TRG_END      5 +trg_out -trg_det
+END
+GEOEND
+ROT-DEFI                                                0.95          trns_fin1
+ROT-DEFI                             120                0.95          rot_fin2
+ROT-DEFI                            -120                0.95          rot_fin3
+MATERIAL          30               7.133                              ZINC
+*Brass (typical)
+*Brass can have a wide variation of Cu/Zn content. Pb is not
+*always present.
+MATERIAL                            8.52                              Brass
+COMPOUND        62.0    COPPER      35.0      ZINC       3.0      LEADBrass
+MATERIAL          24                7.18                              CHROMIUM
+*Stainless-Steel (typical)
+*Stainless-Steel is produced with Cr content ranging from
+*4 - 19 Atomic Percent, and with C content from 0 - 4 percent.
+MATERIAL                             8.0                              Stainles
+COMPOUND        18.0  CHROMIUM      74.0      IRON       8.0    NICKELStainles
+MATERIAL           6                 1.7                              GRAPHITE
+MAT-PROP                            78.0  GRAPHITE
+MAT-PROP        31.0                      GRAPHITE                    DPA-ENER
+STERNHEI       3.155     0.048    2.5387   0.20762    2.9532      0.14GRAPHITE
+*590 Silicon carbide
+MATERIAL                            3.16                              SiC
+COMPOUND         1.0    CARBON       1.0   SILICON                    SiC
+MAT-PROP        24.0                           SiC                    DPA-ENER
+*Inconel-600
+MATERIAL                            8.43                              Inconel_
+COMPOUND        15.0  CHROMIUM       9.0      IRON      76.0    NICKELInconel_
+MATERIAL          35           0.0070722                              BROMINE
+*Bronze (typical)
+*Bronze can have a wide variation of Cu/Zn content.
+MATERIAL                            8.82                              Bronze
+COMPOUND        89.0    COPPER       9.0      ZINC       2.0      LEADBronze
+***********************************************************************
+ASSIGNMA    BLCKHOLE  BLCKHOLE
+ASSIGNMA      VACUUM      VOID
+ASSIGNMA      HELIUM  BEAMLINE                             1
+#if shield
+ASSIGNMA      Bronze   SHLD_BR                             1
+ASSIGNMA       WATER   SHLD_WA                             1
+#else
+ASSIGNMA    BLCKHOLE   SHLD_BR                             1
+ASSIGNMA    BLCKHOLE   SHLD_WA                             1
+#endif
+ASSIGNMA    ALUMINUM  STL_WALL                             1
+ASSIGNMA    TITANIUM     MAG_L                             1
+ASSIGNMA    TITANIUM   MAG_MID                             1
+ASSIGNMA    TITANIUM     MAG_R                             1
+ASSIGNMA    BERYLLIU    TARGET                             1
+ASSIGNMA      HELIUM   TRG_ARO                             1
+ASSIGNMA      HELIUM   TRG_END                             1
+ASSIGNMA      HELIUM   TRG_AIR
+MGNCREAT         300                                       0          FMGRID
+MGNCREAT                                        21        21        41 &
+MGNCREAT        -100      -100      -200       100       100       200 &&
+#include fm/flukaGrid.inp
+MGNFIELD                                  BEAMLINE                    FMGRID
+MGNFIELD                                   SHLD_BR                    FMGRID
+MGNFIELD                                   SHLD_WA                    FMGRID
+MGNFIELD                                  STL_WALL                    FMGRID
+MGNFIELD                                     MAG_L                    FMGRID
+MGNFIELD                                   MAG_MID                    FMGRID
+MGNFIELD                                     MAG_R                    FMGRID
+MGNFIELD                                    TARGET                    FMGRID
+MGNFIELD                                   TRG_AIR                    FMGRID
+MGNFIELD                                   TRG_ARO                    FMGRID
+MGNFIELD                                   TRG_END                    FMGRID
+#if shield
+#if traj
+USERDUMP         100        25         0                              traj
+#endif
+*============ SOLENOID PLOTS
+USRBIN            11   ARC-DPA       -21        95                 195polar_dpa
+USRBIN            30                -195        65         1       390 &
+USRBIN            11   DPA-NRT       -21        95                 195polar_nrt
+USRBIN            30                -195        65         1       390 &
+USRBIN             1  RES-NUCL       -21        95                 195polar_res
+USRBIN            30                -195        65         1       390 &
+USRBIN             1  RES-NUCL       -21        95                 195polar_h
+USRBIN            30                -195        65         1       390 &
+AUXSCORE      USRBIN      -100             polar_h   polar_h
+USRBIN             1  RES-NUCL       -21        95                 195polar_he
+USRBIN            30                -195        65         1       390 &
+AUXSCORE      USRBIN      -200            polar_he  polar_he
+USRBIN             1  RES-NUCL       -21        95                 195polar_tri
+USRBIN            30                -195        65         1       390 &
+AUXSCORE      USRBIN    TRITON           polar_tri polar_tri
+USRBIN            11      DOSE       -21        95                 195polar_dose
+USRBIN            30                -195        65         1       390 &
+*============ TARGET PLOTS
+USRBIN            11   ARC-DPA       -22       2.3                -9.5trg_arc
+USRBIN             0               -80.5        23         3       213 &
+USRBIN            11   DPA-NRT       -22       2.3                -9.5trg_nrt
+USRBIN             0               -80.5        23         3       213 &
+USRBIN             1  RES-NUCL       -22       2.3                -9.5trg_res
+USRBIN             0               -80.5        23         3       213 &
+USRBIN             1  RES-NUCL       -22       2.3                -9.5trg_h
+USRBIN             0               -80.5        23         3       213 &
+AUXSCORE      USRBIN      -100               trg_h     trg_h
+USRBIN             1  RES-NUCL       -22       2.3                -9.5trg_he
+USRBIN             0               -80.5        23         3       213 &
+AUXSCORE      USRBIN      -200              trg_he    trg_he
+USRBIN             1  RES-NUCL       -22       2.3                -9.5trg_tri
+USRBIN             0               -80.5        23         3       213 &
+AUXSCORE      USRBIN    TRITON             trg_tri   trg_tri
+USRBIN            11      DOSE       -22       2.3                -9.5trg_dose
+USRBIN             0               -80.5        23         3       213 &
+#elif part_track
+*============ PARTICLE TRACKING
+USRBIN            10     PION+       -23        30        30       198trk_pi+
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10     PION-       -23        30        30       198trk_pi-
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10    PROTON       -23        30        30       198trk_pro
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10  DEUTERON       -23        30        30       198trk_deu
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10    TRITON       -23        30        30       198trk_tri
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10  4-HELIUM       -23        30        30       198trk_he4
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10  3-HELIUM       -23        30        30       198trk_he3
+USRBIN           -30       -30      -198        60         1       300 &
+USRBIN            10  X-MOMENT       -23        30        30       198x_mom
+USRBIN           -30       -30      -198        60         1       300 &
+*============ PARTICLE TRACKING - TARGET
+USRBIN            10     PION+       -24      2.23      2.23        -3trk_pi+1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10     PION-       -24      2.23      2.23        -3trk_pi-1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10    PROTON       -24      2.23      2.23        -3trk_pro1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10  DEUTERON       -24      2.23      2.23        -3trk_deu1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10    TRITON       -24      2.23      2.23        -3trk_tri1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10  4-HELIUM       -24      2.23      2.23        -3trk_he5
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10  3-HELIUM       -24      2.23      2.23        -3trk_he6
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+USRBIN            10  X-MOMENT       -24      2.23      2.23        -3x_mom1
+USRBIN         -2.23     -2.23       -87       100         1       252 &
+#else
+USERDUMP         100        31         0         1                    dump
+USERWEIG                               3
+*=========== 91 - AT BOTH ENDS OF THE TARGET
+USRBDX             1  ALL-PART       -30    TARGET   TRG_END         1trg_end
+USRBDX             9         0        90                               &
+*=========== 92 - AROUND THE TARGET
+USRBDX             1  ALL-PART       -30    TARGET   TRG_ARO         1trg_aro
+USRBDX             9         0        90                               &
+*=========== 93 - AT THE ENDS OF THE BEAMLINE
+USRBDX             1  ALL-PART       -30  BEAMLINE      VOID         1det_end
+USRBDX             9         0        90                               &
+USRBIN            10    PROTON       -32        30        30       198trk_pro2
+USRBIN           -30       -30      -198        60         1       300 &
+#endif
+*=========== BIASING =================================================
+BIASING            0                   2   SHLD_BR
+BIASING            0                   2   SHLD_WA
+BIASING            0                   4  STL_WALL
+BIASING            0                   4     MAG_L
+BIASING            0                   4   MAG_MID
+BIASING            0                   4     MAG_R
+*..+....1....+....2....+....3....+....4....+....5....+....6....+....7..
+*Set the random number seed
+RANDOMIZ         1.0
+*Set the number of primary histories to be simulated in the run
+START          25000
+STOP

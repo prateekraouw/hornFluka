@@ -1,0 +1,15 @@
+*.dat
+*.out
+*flair
+*.bnn
+*.log
+*.err
+*.2*
+*.txt
+ranHorn*
+*.inp~
+*.flair~
+*.o
+*.x
+*.map
+*.pickle
