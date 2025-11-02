@@ -12,13 +12,6 @@
 *     Copyright (C) 2003-2019:  CERN & INFN                            *
 *     All Rights Reserved.                                             *
 *                                                                      *
-*     MaGnetic field trajectory DRAWing: actually this entry manages   *
-*                                        all trajectory dumping for    *
-*                                        drawing                       *
-*                                                                      *
-*     Created on   01 March 1990   by        Alfredo Ferrari           *
-*                                              INFN - Milan            *
-*                                                                      *
 *----------------------------------------------------------------------*
 *
       INCLUDE '(CASLIM)'
@@ -36,24 +29,14 @@
       DIMENSION DTQUEN ( MXTRCK, MAXQMG )
 *
       CHARACTER*20 FILNAM
-*     Region numbers for aperture and surrounding horn and air
-      INTEGER APER1,HCON1,HGAS1,AIR1
       LOGICAL LFCOPE
-      SAVE LFCOPE
+      LOGICAL LCROSS
+      SAVE LFCOPE, LCROSS
       DATA LFCOPE / .FALSE. /
-*      DATA TAR1,AIR1 /3,6/
-      DATA APER1,HCON1,HGAS1,AIR1,TAR1 /4,2,1,6,3/
+      DATA LCROSS / .FALSE. /
 *
 *----------------------------------------------------------------------*
-*                                                                      *
-*     Icode = 1: call from Kaskad                                      *
-*     Icode = 2: call from Emfsco                                      *
-*     Icode = 3: call from Kasneu                                      *
-*     Icode = 4: call from Kashea                                      *
-*     Icode = 5: call from Kasoph                                      *
-*                                                                      *
-*----------------------------------------------------------------------*
-*                                                                      *
+*
       IF ( .NOT. LFCOPE ) THEN
          LFCOPE = .TRUE.
          IF ( KOMPUT .EQ. 2 ) THEN
@@ -88,49 +71,39 @@
 *                                                                      *
 *     Boundary-(X)crossing DRAWing:                                    *
 *                                                                      *
-*     Icode = 1x: call from Kaskad                                     *
-*             19: boundary crossing                                    *
-*     Icode = 2x: call from Emfsco                                     *
-*             29: boundary crossing                                    *
-*     Icode = 3x: call from Kasneu                                     *
-*             39: boundary crossing                                    *
-*     Icode = 4x: call from Kashea                                     *
-*             49: boundary crossing                                    *
-*     Icode = 5x: call from Kasoph                                     *
-*             59: boundary crossing                                    *
-*                                                                      *
 *======================================================================*
 *                                                                      *
       ENTRY BXDRAW ( ICODE, MREG, NEWREG, XSCO, YSCO, ZSCO )
-*     Print out particles crossing the target-horn aperture boundary
-      IF ((MREG.EQ.AIR1.AND.NEWREG.EQ.APER1).OR.
-     &     (MREG.EQ.HCON1.AND.NEWREG.EQ.APER1).OR.
-     &     (MREG.EQ.HGAS1.AND.NEWREG.EQ.APER1)) THEN
-
-*     Print out particles leaving the target volume(target-air bndry)
-*      IF ((MREG.EQ.TAR1.AND.NEWREG.EQ.AIR1)) THEN 
-
-*     Store pi+(13), pi-(14) and mu+(10), mu-(11)
-         IF (JTRACK.EQ.10.OR.JTRACK.EQ.11.OR.
+*
+*     Initialize CSV file on first call and write header
+      IF (.NOT. LCROSS) THEN
+         LCROSS = .TRUE.
+         OPEN(UNIT=99, FILE='horn_crossings.csv', STATUS='UNKNOWN')
+         WRITE(99,'(A)') 'EvtNo,Type,E,KE,Weight,X,Y,Z,Cx,Cy,Cz,' //
+     &        'Age,Px,Py,Pz,MREG,NEWREG'
+*        Also open debug file to check all crossings
+         OPEN(UNIT=98, FILE='all_crossings_debug.csv', 
+     &        STATUS='UNKNOWN')
+         WRITE(98,'(A)') 'EvtNo,Type,MREG,NEWREG,X,Y,Z'
+      END IF
+*
+*     Log ALL boundary crossings to debug file
+      WRITE(98,'(I11,",",I3,",",I3,",",I3,",",3(1PE15.7,","))')
+     &      NCASE, JTRACK, MREG, NEWREG, XSCO, YSCO, ZSCO
+*
+*     Store particles crossing INTO region 4 (aperturePhys)
+*     From any other region
+      IF (NEWREG.EQ.4) THEN
+*        Store protons(1), mu+(10), mu-(11), pi+(13), pi-(14)
+         IF (JTRACK.EQ.1.OR.JTRACK.EQ.10.OR.JTRACK.EQ.11.OR.
      &        JTRACK.EQ.13.OR.JTRACK.EQ.14) THEN
-*     Particle variables defined in flukapro/(TRACKR):
-*     EvtNo,type,E,KE,weight,position,dirCos,lifetime
-            WRITE(41,102) NCASE,JTRACK,ETRACK,ETRACK-AM(JTRACK),
-     &      WTRACK,XSCO,YSCO,ZSCO,CXTRCK,CYTRCK,CZTRCK,ATRACK
- 102        FORMAT(I11,I7,6(1PE13.5),3(1PE15.7),1PE12.4)
-         ENDIF
-      ENDIF
-
-      IF ((MREG.EQ.TAR1.AND.NEWREG.EQ.AIR1)) THEN
-
-*     Store pi+(13), pi-(14) and mu+(10), mu-(11)
-         IF (JTRACK.EQ.10.OR.JTRACK.EQ.11.OR.
-     &        JTRACK.EQ.13.OR.JTRACK.EQ.14) THEN
-*     Particle variables defined in flukapro/(TRACKR):
-*     EvtNo,type,E,KE,weight,position,dirCos,lifetime
-            WRITE(41,103) NCASE,JTRACK,ETRACK,ETRACK-AM(JTRACK),
-     &      WTRACK,XSCO,YSCO,ZSCO,CXTRCK,CYTRCK,CZTRCK,ATRACK
- 103        FORMAT(I11,I7,6(1PE13.5),3(1PE15.7),1PE12.4)
+            WRITE(99,102) NCASE,JTRACK,ETRACK,ETRACK-AM(JTRACK),
+     &      WTRACK,XSCO,YSCO,ZSCO,CXTRCK,CYTRCK,CZTRCK,ATRACK,
+     &      PTRACK*CXTRCK,PTRACK*CYTRCK,PTRACK*CZTRCK,MREG,NEWREG
+ 102        FORMAT(I11,',',I3,',',1PE15.7,',',1PE15.7,',',1PE15.7,',',
+     &             1PE15.7,',',1PE15.7,',',1PE15.7,',',1PE15.7,',',
+     &             1PE15.7,',',1PE15.7,',',1PE15.7,',',1PE15.7,',',
+     &             1PE15.7,',',1PE15.7,',',I3,',',I3)
          ENDIF
       ENDIF
 
@@ -149,59 +122,9 @@
 *                                                                      *
 *     ENergy deposition DRAWing:                                       *
 *                                                                      *
-*     Icode = 1x: call from Kaskad                                     *
-*             10: elastic interaction recoil                           *
-*             11: inelastic interaction recoil                         *
-*             12: stopping particle                                    *
-*             13: pseudo-neutron deposition                            *
-*             14: escape                                               *
-*             15: time kill                                            *
-*             16: recoil from (heavy) bremsstrahlung                   *
-*     Icode = 2x: call from Emfsco                                     *
-*             20: local energy deposition (i.e. photoelectric)         *
-*             21: below threshold, iarg=1                              *
-*             22: below threshold, iarg=2                              *
-*             23: escape                                               *
-*             24: time kill                                            *
-*     Icode = 3x: call from Kasneu                                     *
-*             30: target recoil                                        *
-*             31: below threshold                                      *
-*             32: escape                                               *
-*             33: time kill                                            *
-*     Icode = 4x: call from Kashea                                     *
-*             40: escape                                               *
-*             41: time kill                                            *
-*             42: delta ray stack overflow                             *
-*     Icode = 5x: call from Kasoph                                     *
-*             50: optical photon absorption                            *
-*             51: escape                                               *
-*             52: time kill                                            *
-*                                                                      *
 *======================================================================*
 *                                                                      *
       ENTRY ENDRAW ( ICODE, MREG, RULL, XSCO, YSCO, ZSCO )
-*      IF ( .NOT. LFCOPE ) THEN
-*         LFCOPE = .TRUE.
-*         IF ( KOMPUT .EQ. 2 ) THEN
-*            FILNAM = '/'//CFDRAW(1:8)//' DUMP A'
-*         ELSE
-*            FILNAM = CFDRAW
-*         END IF
-*         OPEN ( UNIT = IODRAW, FILE = FILNAM, STATUS = 'NEW', FORM =
-*     &          'UNFORMATTED' )
-*      END IF
-*      WRITE (IODRAW)  0, ICODE, JTRACK, SNGL (ETRACK), SNGL (WTRACK)
-*      WRITE (IODRAW)  SNGL (XSCO), SNGL (YSCO), SNGL (ZSCO), SNGL (RULL)
-*  +-------------------------------------------------------------------*
-*  |  Quenching is activated : calculate quenching factor
-*  |  and store quenched energy in DTQUEN(1, jbk)
-*      IF ( LQEMGD ) THEN
-*         RULLL = RULL
-*         CALL QUENMG ( ICODE, MREG, RULLL, DTQUEN )
-*         WRITE (IODRAW) ( SNGL (DTQUEN(1, JBK)), JBK = 1, NQEMGD )
-*      END IF
-*  |  end quenching
-*  +-------------------------------------------------------------------*
       RETURN
 *
 *======================================================================*
@@ -224,8 +147,7 @@
       WRITE (IODRAW) -NCASE, NPFLKA, NSTMAX, SNGL (TKESUM),
      &                SNGL (WEIPRI)
 *  +-------------------------------------------------------------------*
-*  |  (Radioactive) isotope: it works only for 1 source particle on
-*  |  the stack for the time being
+*  |  (Radioactive) isotope
       IF ( ILOFLK (NPFLKA) .GE. 100000 .AND. LRADDC (NPFLKA) ) THEN
          IARES  = MOD ( ILOFLK (NPFLKA), 100000  )  / 100
          IZRES  = MOD ( ILOFLK (NPFLKA), 10000000 ) / 100000
@@ -238,8 +160,7 @@
      &                    SNGL (TZFLK(I)), I = 1, NPFLKA )
 *  |
 *  +-------------------------------------------------------------------*
-*  |  Patch for heavy ions: it works only for 1 source particle on
-*  |  the stack for the time being
+*  |  Patch for heavy ions
       ELSE IF ( ABS (ILOFLK (NPFLKA)) .GE. 10000 ) THEN
          IONID = ILOFLK (NPFLKA)
          CALL DCDION ( IONID )
@@ -250,7 +171,7 @@
      &                    SNGL (TZFLK(I)), I = 1, NPFLKA )
 *  |
 *  +-------------------------------------------------------------------*
-*  |  Patch for heavy ions: ???
+*  |  Patch for heavy ions
       ELSE IF ( ILOFLK (NPFLKA) .LT. -6 ) THEN
          WRITE (IODRAW) ( IONID,SNGL(TKEFLK(I)+AMNHEA(-ILOFLK(NPFLKA))),
      &                    SNGL (WTFLK(I)), SNGL (XFLK (I)),
@@ -275,33 +196,6 @@
 *                                                                      *
 *     USer dependent DRAWing:                                          *
 *                                                                      *
-*     Icode = 10x: call from Kaskad                                    *
-*             100: elastic   interaction secondaries                   *
-*             101: inelastic interaction secondaries                   *
-*             102: particle decay  secondaries                         *
-*             103: delta ray  generation secondaries                   *
-*             104: pair production secondaries                         *
-*             105: bremsstrahlung  secondaries                         *
-*             110: radioactive decay products                          *
-*     Icode = 20x: call from Emfsco                                    *
-*             208: bremsstrahlung secondaries                          *
-*             210: Moller secondaries                                  *
-*             212: Bhabha secondaries                                  *
-*             214: in-flight annihilation secondaries                  *
-*             215: annihilation at rest   secondaries                  *
-*             217: pair production        secondaries                  *
-*             219: Compton scattering     secondaries                  *
-*             221: photoelectric          secondaries                  *
-*             225: Rayleigh scattering    secondaries                  *
-*             237: mu pair production     secondaries                  *
-*     Icode = 30x: call from Kasneu                                    *
-*             300: interaction secondaries                             *
-*     Icode = 40x: call from Kashea                                    *
-*             400: delta ray  generation secondaries                   *
-*  For all interactions secondaries are put on GENSTK common (kp=1,np) *
-*  but for KASHEA delta ray generation where only the secondary elec-  *
-*  tron is present and stacked on FLKSTK common for kp=npflka          *
-*                                                                      *
 *======================================================================*
 *
       ENTRY USDRAW ( ICODE, MREG, XSCO, YSCO, ZSCO )
@@ -317,6 +211,5 @@
       END IF
 * No output by default:
       RETURN
-*=== End of subrutine Mgdraw ==========================================*
+*=== End of subroutine Mgdraw =========================================*
       END
-

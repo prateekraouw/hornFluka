@@ -339,5 +339,5 @@ USRBIN    , -30, -30, -198, 60, 1, 300,  &
 OPEN      , 41.0,  , , , , ,UNKNOWN
 output.txt
 RANDOMIZ  , 1.0, 1.0
-START     , 5000.
+START     , 10000.
 STOP

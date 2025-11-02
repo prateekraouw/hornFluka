@@ -54,7 +54,7 @@ $(PROGRAM): $(OBJECTS)
 #
 #
 clean:
-	rm -f $(PROGRAM) *.o *.map *.FOR *.mod
-	rm -f $(LOGFILE)
+	@rm -f $(PROGRAM) *.o *.map *.FOR *.mod
+	@rm -f $(LOGFILE)
 #
 #
